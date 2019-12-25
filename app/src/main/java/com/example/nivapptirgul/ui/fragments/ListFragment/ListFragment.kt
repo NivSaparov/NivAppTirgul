@@ -10,7 +10,7 @@ import androidx.navigation.fragment.findNavController
 import com.example.nivapptirgul.R
 import com.example.nivapptirgul.data.provider.DataPreferenceProviderImpl
 import com.example.nivapptirgul.ui.ListViewModel
-import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.list_fragment.*
 
 class ListFragment : Fragment() {
 
@@ -42,12 +42,14 @@ class ListFragment : Fragment() {
         viewModel = ViewModelProviders.of(this, viewModelFactory).get(ListViewModel::class.java)
 
         viewModel.getUserName()
-        viewModel.userName.observe(this@ListFragment, Observer {
-            activity!!.activity_toolbar.title = it
-
+        viewModel.userName.observe(this@ListFragment, Observer {title->
+            toolbar_listFragment.title = title
         })
 
-
+        toolbar_listFragment.setOnMenuItemClickListener{
+            navController.navigate(R.id.open_preference_fragment)
+            true
+        }
     }
 
 
