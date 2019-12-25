@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">NivAppTirgul</string>
+    <string name="action_preference">Preference</string>
+
 </resources>
