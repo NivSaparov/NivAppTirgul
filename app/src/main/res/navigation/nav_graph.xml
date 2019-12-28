@@ -9,7 +9,10 @@
         android:id="@+id/listFragment"
         android:name="com.example.nivapptirgul.ui.fragments.ListFragment.ListFragment"
         android:label="list_fragment"
-        tools:layout="@layout/list_fragment" >
+        tools:layout="@layout/list_fragment">
+        <action
+            android:id="@+id/action_listFragment_to_addReminderFragment"
+            app:destination="@id/addReminderFragment"></action>
     </fragment>
     <fragment
         android:id="@+id/preferenceFragment"
@@ -17,8 +20,38 @@
         android:label="preference_fragment"
         tools:layout="@layout/preference_fragment" />
 
+    <fragment
+        android:id="@+id/addReminderFragment"
+        android:name="com.example.nivapptirgul.ui.fragments.addReminder.AddEditReminderFragment"
+        android:label="add_reminder_fragment"
+        tools:layout="@layout/add_reminder_fragment">
+
+        <argument
+            android:name="title"
+            android:defaultValue="@null"
+            app:argType="string"
+            app:nullable="true" />
+        <argument
+            android:name="body"
+            android:defaultValue="@null"
+            app:argType="string"
+            app:nullable="true" />
+
+        <argument
+            android:name="itemId"
+            android:defaultValue="1"
+            app:argType="integer" />
+        <action
+            android:id="@+id/action_addReminderFragment_to_listFragment"
+            app:destination="@id/listFragment"
+
+            />
+    </fragment>
+
     <!--Global action-->
     <action
         android:id="@+id/open_preference_fragment"
         app:destination="@id/preferenceFragment" />
+
+
 </navigation>
