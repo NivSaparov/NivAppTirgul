@@ -2,4 +2,6 @@
 <resources>
 
     <dimen name="reminder_item_height">100dp</dimen>
+
+    <dimen name="reminder_clock_height">200dp</dimen>
 </resources>

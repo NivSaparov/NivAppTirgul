@@ -23,13 +23,13 @@ import com.example.nivapptirgul.data.Repository.DataRepositoryImpl
 import com.example.nivapptirgul.data.db.entity.Reminder
 import com.example.nivapptirgul.data.provider.DataPreferenceProviderImpl
 import com.example.nivapptirgul.data.provider.provideRemindersDao
+import com.example.nivapptirgul.data.provider.provideUserDao
 import com.example.nivapptirgul.ui.ListViewModel
 import com.example.nivapptirgul.ui.fragments.ListFragment.recycler.SwipeAdapter
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.list_fragment.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
 
@@ -55,7 +55,7 @@ class ListFragment : Fragment() {
         navController = findNavController()
 
 
-   }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -68,7 +68,8 @@ class ListFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
         var dataRepositoryImpl = DataRepositoryImpl(
             DataPreferenceProviderImpl(context!!),
-            provideRemindersDao(context!!)
+            provideRemindersDao(context!!),
+            provideUserDao(context !!)
         )
 
         viewModelFactory = ListViewModelFactory(dataRepositoryImpl)
@@ -92,7 +93,11 @@ class ListFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         toolbar_listFragment.setOnMenuItemClickListener {
-            navController.navigate(R.id.open_preference_fragment, null, NavOptions.Builder().setPopUpTo(R.id.addReminderFragment, true).build())
+            navController.navigate(
+                R.id.open_preference_fragment,
+                null,
+                NavOptions.Builder().setPopUpTo(R.id.addReminderFragment, true).build()
+            )
             true
         }
 

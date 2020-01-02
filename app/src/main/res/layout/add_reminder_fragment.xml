@@ -21,9 +21,11 @@
         android:layout_height="0dp"
         android:layout_gravity="center_vertical"
         android:layout_weight="1"
+        android:textSize="32sp"
         android:gravity="center"
+        android:maxLength="32"
         android:textAppearance="@style/TextAppearance.AppCompat.Display3"
-        tools:text="Title 1 cs nkn cl " />
+        tools:text="Need to do some homework.." />
 
     <EditText
         android:id="@+id/editText_body"
@@ -35,7 +37,10 @@
         android:gravity="top"
         android:textAppearance="@style/TextAppearance.AppCompat.Body1"
         android:textSize="18sp"
+        android:maxLength="128"
         tools:text="Some text blalalbalca,ccdscdsslvsdvcdsavs a\ncskacmasjknvja sncsdnjkc,scksa dsmck asd cnsn cdsac sc ac dsa cs ana cmkasmck svnasknckasc va jcs" />
+
+
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/buttonCheck"

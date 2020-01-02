@@ -26,7 +26,7 @@ android {
         }
     }
 
-    androidExtensions{
+    androidExtensions {
         experimental = true
     }
 
@@ -66,6 +66,11 @@ dependencies {
     // optional - Kotlin Extensions and Coroutines support for Room
     implementation "androidx.room:room-ktx:$room_version"
 
+    // socket io
+    implementation 'com.github.nkzawa:socket.io-client:0.6.0'
+
+    // Handle time better for older version
+    implementation 'com.jakewharton.threetenabp:threetenabp:1.2.1'
 
 
 }

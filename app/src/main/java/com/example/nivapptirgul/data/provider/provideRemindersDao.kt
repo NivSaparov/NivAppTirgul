@@ -6,3 +6,7 @@ import com.example.nivapptirgul.data.db.RemindersDatabase
 
 fun provideRemindersDao(context: Context) =
     RemindersDatabase.invoke(context).getReminderDao()
+
+
+fun provideUserDao(context: Context) =
+    RemindersDatabase.invoke(context).getUserDao()

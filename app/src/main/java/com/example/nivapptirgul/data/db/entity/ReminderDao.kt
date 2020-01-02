@@ -29,9 +29,9 @@ interface ReminderDao {
     @Transaction
     fun insertOrUpdate(reminder: Reminder) {
         var itemFromDb = getItemById(reminder.id)
-        if (itemFromDb == null){
+        if (itemFromDb == null) {
             upsert(reminder)
-        }else{
+        } else {
             updateItem(reminder.id, reminder.title, reminder.body)
         }
     }
@@ -39,4 +39,7 @@ interface ReminderDao {
     @Insert
     @JvmSuppressWildcards
     fun addAll(items: ArrayList<Reminder>)
+
+    @Query("UPDATE reminders_table SET userId = :id WHERE  userId IS NULL ")
+    fun updateRemindersToUser(id: Int)
 }

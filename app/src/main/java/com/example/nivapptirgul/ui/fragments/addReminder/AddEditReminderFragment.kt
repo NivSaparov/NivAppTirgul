@@ -13,6 +13,7 @@ import com.example.nivapptirgul.data.Repository.DataRepositoryImpl
 import com.example.nivapptirgul.data.db.entity.Reminder
 import com.example.nivapptirgul.data.provider.DataPreferenceProviderImpl
 import com.example.nivapptirgul.data.provider.provideRemindersDao
+import com.example.nivapptirgul.data.provider.provideUserDao
 import kotlinx.android.synthetic.main.add_reminder_fragment.*
 import kotlinx.coroutines.*
 
@@ -43,7 +44,8 @@ class AddEditReminderFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
         var dataRepositoryImpl = DataRepositoryImpl(
             DataPreferenceProviderImpl(context!!),
-            provideRemindersDao(context!!)
+            provideRemindersDao(context!!),
+            provideUserDao(context !!)
         )
 
         viewModelFactory = AddEditViewModelFactory(dataRepositoryImpl)

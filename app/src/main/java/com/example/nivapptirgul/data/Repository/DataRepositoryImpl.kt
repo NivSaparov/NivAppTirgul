@@ -1,17 +1,20 @@
 package com.example.nivapptirgul.data.Repository
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.example.nivapptirgul.data.db.RemindersDatabase
 import com.example.nivapptirgul.data.db.entity.Reminder
 import com.example.nivapptirgul.data.db.entity.ReminderDao
+import com.example.nivapptirgul.data.db.entity.UserDao
 import com.example.nivapptirgul.data.provider.DataPreferenceProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class DataRepositoryImpl(
     private val dataPreferenceProvider: DataPreferenceProvider,
-    private val reminderDao: ReminderDao) :
+    private val reminderDao: ReminderDao,
+    private val userDao: UserDao
+) :
     DataRepository {
 
     var _userName = MutableLiveData<String>()
@@ -24,7 +27,19 @@ class DataRepositoryImpl(
     }
 
     override suspend fun getReminders(): LiveData<List<Reminder>> {
-        return withContext(Dispatchers.IO){
+
+        val user = userDao.getUsers().first()
+        Log.d(
+            "DataRepositories", "User: $user"
+        )
+
+        // update
+        reminderDao.updateRemindersToUser(user.userId)
+
+        val reminders = reminderDao.getRemindersWithoutLiveData()
+        Log.d("DataRepositories ", reminders.toString())
+
+        return withContext(Dispatchers.IO) {
             return@withContext reminderDao.getReminders()
         }
     }
@@ -42,7 +57,7 @@ class DataRepositoryImpl(
     }
 
     override suspend fun deleteReminders(reminders: List<Reminder>) {
-        for (reminder in reminders){
+        for (reminder in reminders) {
             deleteReminder(reminder)
         }
     }
