@@ -18,7 +18,9 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
     }
+
     buildTypes {
         release {
             minifyEnabled false
@@ -66,11 +68,32 @@ dependencies {
     // optional - Kotlin Extensions and Coroutines support for Room
     implementation "androidx.room:room-ktx:$room_version"
 
-    // socket io
-    implementation 'com.github.nkzawa:socket.io-client:0.6.0'
 
     // Handle time better for older version
     implementation 'com.jakewharton.threetenabp:threetenabp:1.2.1'
+
+    // socket io
+    implementation 'com.github.nkzawa:socket.io-client:0.6.0'
+
+    // GSON
+    implementation 'com.google.code.gson:gson:2.8.6'
+
+    /* Dagger2 - We are going to use dagger.android which includes
+      * support for Activity and fragment injection so we need to include
+      * the following dependencies */
+    implementation 'com.google.dagger:dagger-android:2.17'
+    implementation 'com.google.dagger:dagger-android-support:2.17'
+    annotationProcessor 'com.google.dagger:dagger-android-processor:2.17'
+
+
+    def work_version = "2.2.0"
+
+    // Kotlin + coroutines
+    implementation "androidx.work:work-runtime-ktx:$work_version"
+
+    def dagger_version = "2.25.2"
+    implementation "com.google.dagger:dagger:$dagger_version"
+    kapt "com.google.dagger:dagger-compiler:$dagger_version"
 
 
 }

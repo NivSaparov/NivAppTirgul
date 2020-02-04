@@ -1,5 +1,24 @@
 <resources>
     <string name="app_name">NivAppTirgul</string>
     <string name="action_preference">Preference</string>
+    <string name="action_logout">Logout</string>
+    <string name="submit">submit</string>
+
+    <string-array name="before_array">
+        <item>0</item>
+        <item>2</item>
+        <item>5</item>
+        <item>10</item>
+        <item>15</item>
+        <item>20</item>
+        <item>30</item>
+    </string-array>
+
+    <string name="error_title">title required</string>
+    <string name="error_body">data required</string>
+    <string name="user_name">Username</string>
+    <string name="login">LOGIN</string>
+    <string name="register">Register</string>
+
 
 </resources>

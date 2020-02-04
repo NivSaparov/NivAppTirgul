@@ -4,24 +4,23 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.nivapptirgul.data.db.entity.Reminder
 import com.example.nivapptirgul.data.db.entity.ReminderDao
-import com.example.nivapptirgul.data.db.entity.User
-import com.example.nivapptirgul.data.db.entity.UserDao
+import com.example.nivapptirgul.internal.Converters
 import java.util.*
+import javax.inject.Inject
 
 @Database(
-    entities = arrayOf((Reminder::class), (User::class)),
-    version = 3
+    entities = arrayOf((Reminder::class)),
+    version = 5
 )
-abstract class RemindersDatabase : RoomDatabase() {
+@TypeConverters(Converters::class)
+abstract class RemindersDatabase: RoomDatabase() {
 
     abstract fun getReminderDao(): ReminderDao
-    abstract fun getUserDao(): UserDao
-
-
     /**
      *  Create this db once,
      *  and lock it each time -> thread safety
@@ -86,13 +85,14 @@ abstract class RemindersDatabase : RoomDatabase() {
                 }
             }
 
+
             // Create new database with migration in case user have older database schema
             return Room.databaseBuilder(
                 context.applicationContext,
                 RemindersDatabase::class.java,
                 "reminder.db")
                 .addMigrations(MIGRATION_1_2)
-                .addMigrations(MIGRATION_2_3)
+                .addMigrations(MIGRATION_2_3).fallbackToDestructiveMigration()
                 .build()
         }
     }

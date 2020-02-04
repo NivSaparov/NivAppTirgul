@@ -1,36 +1,46 @@
 package com.example.nivapptirgul.ui.fragments.addReminder
 
+import android.app.DatePickerDialog
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProviders
+import android.widget.ArrayAdapter
+import android.widget.DatePicker
+import androidx.lifecycle.Observer
 import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import com.example.nivapptirgul.R
-import com.example.nivapptirgul.data.Repository.DataRepositoryImpl
 import com.example.nivapptirgul.data.db.entity.Reminder
-import com.example.nivapptirgul.data.provider.DataPreferenceProviderImpl
-import com.example.nivapptirgul.data.provider.provideRemindersDao
-import com.example.nivapptirgul.data.provider.provideUserDao
+import com.example.nivapptirgul.di.DaggerAppComponent
+import com.example.nivapptirgul.ui.fragments.ScopedFragment
 import kotlinx.android.synthetic.main.add_reminder_fragment.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
+import java.util.*
+import javax.inject.Inject
 
 const val NEW_REMINDER = -1
-const val NULL_BUNDLE = "@null"
 
-class AddEditReminderFragment : Fragment() {
+class AddEditReminderFragment : ScopedFragment() {
 
     private var reminderItemId = NEW_REMINDER
-
-    private lateinit var viewModel: AddEditReminderViewModel
-    private lateinit var viewModelFactory: AddEditViewModelFactory
+    @Inject
+    lateinit var viewModel: AddEditReminderViewModel
     private lateinit var navController: NavController
+
+    private var myReminder: Reminder = Reminder()
+
+    private var alarmTime = Calendar.getInstance()
+
+    private lateinit var alertTimeBefore: ArrayAdapter<CharSequence>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         navController = findNavController()
+        DaggerAppComponent.factory().create(context!!).inject(this)
+
     }
 
     override fun onCreateView(
@@ -42,65 +52,132 @@ class AddEditReminderFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        var dataRepositoryImpl = DataRepositoryImpl(
-            DataPreferenceProviderImpl(context!!),
-            provideRemindersDao(context!!),
-            provideUserDao(context !!)
+
+        initAddOrEdit()
+        initToolbar()
+
+
+        // Date picker
+        val datePickerDialog = DatePickerDialog(
+            context,
+            object : DatePickerDialog.OnDateSetListener {
+                override fun onDateSet(p0: DatePicker?, year: Int, month: Int, day: Int) {
+
+                    alarmTime.set(Calendar.YEAR, year)
+                    alarmTime.set(Calendar.MONTH, month)
+                    alarmTime.set(Calendar.DAY_OF_MONTH, day)
+                    textView_date.text = "$day/${month + 1}/$year"
+
+
+                }
+            }, 0, 0, 0
         )
+        datePickerDialog.datePicker.minDate = alarmTime.timeInMillis
+        //  "${datePickerDialog.datePicker.dayOfMonth}/${datePickerDialog.datePicker.month + 1}/${datePickerDialog.datePicker.year}"
 
-        viewModelFactory = AddEditViewModelFactory(dataRepositoryImpl)
-        viewModel =
-            ViewModelProviders.of(this, viewModelFactory).get(AddEditReminderViewModel::class.java)
+        button_datePicker.setOnClickListener {
+            datePickerDialog.show()
+        }
 
-        // save data and go to listFragment
-        buttonCheck.setOnClickListener {
+
+        // Spinner picker
+        alertTimeBefore = ArrayAdapter.createFromResource(
+            context, R.array.before_array, R.layout.support_simple_spinner_dropdown_item
+        ).also { adapter ->
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            // Apply the adapter to the spinner
+            spinner_beforeTime.adapter = adapter
+        }
+
+    }
+
+    private fun initToolbar() {
+
+        // When back button pressed
+        toolbar_fragmentAddEdit.setNavigationOnClickListener {
+            activity?.onBackPressed()
+        }
+        // add toolbar menu
+        toolbar_fragmentAddEdit.inflateMenu(R.menu.menu_details_fragment)
+        toolbar_fragmentAddEdit.setOnMenuItemClickListener {
             var title = editText_title.text.toString().trim()
             var body = editText_body.text.toString().trim()
 
             if (title.isEmpty()) {
-                editText_title.error = "title required"
-                return@setOnClickListener
+                editText_title.error = getString(R.string.error_title)
+                return@setOnMenuItemClickListener true
             }
             if (body.isEmpty()) {
-                editText_body.error = "set reminder"
-                return@setOnClickListener
+                editText_body.error = getString(R.string.error_body)
+                return@setOnMenuItemClickListener true
             }
 
-            GlobalScope.launch(Dispatchers.IO) {
-                var reminder = Reminder(title = title, body = body)
-                if (reminderItemId != NEW_REMINDER){
-                    reminder.id = reminderItemId
+            val myDate = alarmTime.time
+            myDate.hours = timePicker.currentHour
+            myDate.minutes = timePicker.currentMinute
+            myDate.seconds = 0
+
+            Log.i("AddFragment", myDate.toString())
+
+
+            if (myReminder != null) {
+
+                myReminder.title = title
+                myReminder.body = body
+                myReminder.date = myDate
+                myReminder.beforeTimeMill = spinner_beforeTime.selectedItem.toString().toInt()
+                if (reminderItemId != NEW_REMINDER) {
+                    myReminder.id = reminderItemId
                 }
-                val insert = async {  viewModel.insertOrUpdate(reminder)}
+            }
+            Log.i("AddFragment", "Insert reminder: ${myReminder!!.date.toString()}")
+            launch {
+
+                val insert = async {
+                    viewModel.insertOrUpdate(myReminder!!)
+                }
                 insert.await()
 
                 // when finish, return to listFragment
                 navController.navigate(R.id.action_addReminderFragment_to_listFragment)
-
             }
+
+            true
         }
     }
 
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-
-        // Set view according to request action - Edit OR Add
+    private fun initAddOrEdit() = launch {
+        // Set view according to request action - Edit or Add
         var data = AddEditReminderFragmentArgs.fromBundle(arguments)
-        if (data.title != NULL_BUNDLE) {
-            // set toolbar title
-            toolbar_addEditFragment.title = "Edit Reminder"
-            // set views from arguments
-            editText_title.setText(data.title)
-            editText_body.setText(data.body)
-            reminderItemId = data.itemId
+
+        if (data.itemId == NEW_REMINDER) {
+            toolbar_fragmentAddEdit.title = "New Alert"
+            timePicker.currentHour = myReminder.date.hours
+            timePicker.currentMinute = myReminder.date.minutes
+            textView_date.text = myReminder.getDateOnlyString()
+
+
         } else {
-            // set toolbar title
-            reminderItemId = NEW_REMINDER
-            toolbar_addEditFragment.title = "Add Reminder"
+            toolbar_fragmentAddEdit.title = "Edit Alert"
+            val reminder = viewModel.getReminder(data.itemId)
+            reminder.observe(this@AddEditReminderFragment, Observer {
+                if (it == null) return@Observer
+                myReminder = it
+                it.id = data.itemId
+                editText_title.setText(it.title)
+                editText_body.setText(it.body)
+                reminderItemId = data.itemId
+                timePicker.currentHour = myReminder.date.hours
+                timePicker.currentMinute = myReminder.date.minutes
+                textView_date.text = myReminder.getDateOnlyString()
+                spinner_beforeTime.setSelection(alertTimeBefore.getPosition(myReminder.beforeTimeMill.toString()))
+            })
 
         }
+
     }
+
+
 }
 

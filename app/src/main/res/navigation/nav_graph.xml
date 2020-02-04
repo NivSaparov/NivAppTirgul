@@ -14,11 +14,6 @@
             android:id="@+id/action_listFragment_to_addReminderFragment"
             app:destination="@id/addReminderFragment"></action>
     </fragment>
-    <fragment
-        android:id="@+id/preferenceFragment"
-        android:name="com.example.nivapptirgul.ui.fragments.Preference.PreferenceFragment"
-        android:label="preference_fragment"
-        tools:layout="@layout/preference_fragment" />
 
     <fragment
         android:id="@+id/addReminderFragment"
@@ -49,12 +44,9 @@
     </fragment>
 
     <!--Global action-->
-    <action
-        android:id="@+id/open_preference_fragment"
-        app:destination="@id/preferenceFragment" />
     <fragment
         android:id="@+id/loginFragment"
-        android:name="com.example.nivapptirgul.ui.fragments.LoginFragment"
+        android:name="com.example.nivapptirgul.ui.fragments.login.LoginFragment"
         android:label="login_fragment"
         tools:layout="@layout/login_fragment" >
         <action

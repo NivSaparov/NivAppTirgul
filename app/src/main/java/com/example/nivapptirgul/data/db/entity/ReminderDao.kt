@@ -2,9 +2,10 @@ package com.example.nivapptirgul.data.db.entity
 
 import androidx.lifecycle.LiveData
 import androidx.room.*
+import javax.inject.Inject
 
 @Dao
-interface ReminderDao {
+interface ReminderDao{
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun upsert(reminder: Reminder)
 
@@ -24,7 +25,7 @@ interface ReminderDao {
     fun deleteAll()
 
     @Query("SELECT * FROM reminders_table WHERE id = :id")
-    fun getItemById(id: Int): Int
+    fun getItemById(id: Int): LiveData<Reminder>
 
     @Transaction
     fun insertOrUpdate(reminder: Reminder) {
@@ -36,9 +37,15 @@ interface ReminderDao {
         }
     }
 
+    @Transaction
+    fun updateData(data: List<Reminder>){
+        deleteAll()
+        addAll(data)
+
+    }
+
     @Insert
-    @JvmSuppressWildcards
-    fun addAll(items: ArrayList<Reminder>)
+    fun addAll(items: List<Reminder>)
 
     @Query("UPDATE reminders_table SET userId = :id WHERE  userId IS NULL ")
     fun updateRemindersToUser(id: Int)

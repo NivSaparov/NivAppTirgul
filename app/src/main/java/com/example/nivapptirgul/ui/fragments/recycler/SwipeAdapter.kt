@@ -1,6 +1,7 @@
-package com.example.nivapptirgul.ui.fragments.ListFragment.recycler
+package com.example.nivapptirgul.ui.fragments.recycler
 
 import android.content.Context
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,6 +9,10 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.nivapptirgul.R
 import com.example.nivapptirgul.data.db.entity.Reminder
+import org.w3c.dom.Text
+import java.text.SimpleDateFormat
+import java.util.*
+import kotlin.collections.ArrayList
 
 class SwipeAdapter(context: Context,  val items: ArrayList<Reminder>) :
     RecyclerView.Adapter<SwipeAdapter.ViewHolder>() {
@@ -30,6 +35,18 @@ class SwipeAdapter(context: Context,  val items: ArrayList<Reminder>) :
         var item = items.elementAt(position)
         holder.title.text = item.title
         holder.body.text = item.body
+
+        var dateTime = formatDateToTime(item.date)
+        var dateDate = formatDateToPropperDate(item.date)
+        holder.time.text = dateTime
+        holder.date.text = dateDate
+
+        if (item.isDone()){
+            holder.itemView.setBackgroundColor(Color.CYAN)
+        }else{
+            holder.itemView.setBackgroundColor(Color.TRANSPARENT)
+
+        }
     }
 
     override fun getItemCount(): Int = items.size
@@ -69,6 +86,9 @@ class SwipeAdapter(context: Context,  val items: ArrayList<Reminder>) :
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         var title: TextView = itemView.findViewById(R.id.item_title)
         var body: TextView = itemView.findViewById(R.id.item_body)
+        var time: TextView = itemView.findViewById(R.id.item_time_time)
+        var date: TextView = itemView.findViewById(R.id.item_time_date)
+
 
         init {
             itemView.setOnClickListener {
@@ -86,5 +106,14 @@ class SwipeAdapter(context: Context,  val items: ArrayList<Reminder>) :
 
     fun setOnItemClickListener(onItemClickListener: OnItemClickListener) {
         listener = onItemClickListener
+    }
+
+    private fun formatDateToTime(date:Date): String{
+        val formatter = SimpleDateFormat("hh:mm")
+        return formatter.format(date)
+    }
+    private fun formatDateToPropperDate(date: Date):String{
+        val formatter = SimpleDateFormat("dd.MM.yy\nE")
+        return formatter.format(date)
     }
 }

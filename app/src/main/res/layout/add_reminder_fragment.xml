@@ -1,52 +1,118 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    tools:context=".ui.fragments.addReminder.AddEditReminderFragment">
+    android:layout_height="match_parent">
 
 
-    <androidx.appcompat.widget.Toolbar
-        android:id="@+id/toolbar_addEditFragment"
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:background="?attr/colorPrimary"
-        android:elevation="4dp"
-        android:theme="@style/ThemeOverlay.AppCompat.ActionBar" />
-
-    <EditText
-        android:id="@+id/editText_title"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_gravity="center_vertical"
-        android:layout_weight="1"
-        android:textSize="32sp"
-        android:gravity="center"
-        android:maxLength="32"
-        android:textAppearance="@style/TextAppearance.AppCompat.Display3"
-        tools:text="Need to do some homework.." />
-
-    <EditText
-        android:id="@+id/editText_body"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
-        android:layout_weight="4"
-        android:gravity="top"
-        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-        android:textSize="18sp"
-        android:maxLength="128"
-        tools:text="Some text blalalbalca,ccdscdsslvsdvcdsavs a\ncskacmasjknvja sncsdnjkc,scksa dsmck asd cnsn cdsac sc ac dsa cs ana cmkasmck svnasknckasc va jcs" />
-
-
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/buttonCheck"
-        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="right"
-        android:layout_margin="16dp"
-        android:src="@drawable/ic_check_black_24dp" />
-</LinearLayout>
+        tools:context=".ui.fragments.addReminder.AddEditReminderFragment">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar_fragmentAddEdit"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorPrimary"
+            android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:navigationIcon="?attr/homeAsUpIndicator"
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+
+
+        <TextView
+            android:id="@+id/textView_date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="16dp"
+            android:layout_marginTop="16dp"
+            android:textSize="24sp"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/toolbar_fragmentAddEdit"
+            tools:text="Wed, September 23" />
+
+        <Button
+            android:id="@+id/button_datePicker"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Date"
+            app:layout_constraintBottom_toBottomOf="@+id/textView_date"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/textView_date" />
+
+        <TimePicker
+            android:id="@+id/timePicker"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:timePickerMode="clock"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/button_datePicker" />
+
+        <TextView
+            android:id="@+id/textView_alarmName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="16dp"
+            android:text="Alarm name:"
+            android:textSize="16dp"
+            app:layout_constraintBottom_toTopOf="@+id/textView_desc"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/timePicker" />
+
+
+        <EditText
+            android:id="@+id/editText_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxLength="64"
+            android:textSize="16sp"
+            app:layout_constraintBaseline_toBaselineOf="@id/textView_alarmName"
+            app:layout_constraintLeft_toRightOf="@id/textView_alarmName"
+            tools:text="Home work" />
+
+        <TextView
+            android:id="@+id/textView_desc"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Description:"
+            android:textSize="16sp"
+            app:layout_constraintStart_toStartOf="@+id/textView_alarmName"
+            app:layout_constraintTop_toBottomOf="@id/editText_title" />
+
+        <EditText
+            android:id="@+id/editText_body"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxLength="64"
+            android:textSize="16dp"
+            app:layout_constraintBaseline_toBaselineOf="@id/textView_desc"
+            app:layout_constraintLeft_toRightOf="@id/textView_desc"
+            tools:text="Home work" />
+
+
+        <TextView
+            android:id="@+id/textView_notification"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Notification Time:"
+            android:textSize="16dp"
+            app:layout_constraintStart_toStartOf="@+id/textView_desc"
+            app:layout_constraintTop_toBottomOf="@+id/editText_body" />
+
+
+        <Spinner
+            android:id="@+id/spinner_beforeTime"
+            android:layout_width="194dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toBottomOf="@+id/textView_notification"
+            app:layout_constraintStart_toEndOf="@+id/textView_notification"
+            app:layout_constraintTop_toTopOf="@+id/textView_notification" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+</ScrollView>
