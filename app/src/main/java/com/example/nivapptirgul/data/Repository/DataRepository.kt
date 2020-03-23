@@ -10,15 +10,17 @@ interface DataRepository {
     val userRemindersData: LiveData<List<Reminder>>
 
 
-    fun updateUserName()
-    suspend fun getReminders(): LiveData<List<Reminder>>
+    suspend fun updateUserName()
+    suspend fun getReminders(): List<Reminder>
     suspend fun insertOrUpdate(reminder: Reminder)
     suspend fun deleteReminder(reminder: Reminder)
     suspend fun getReminderById(reminderId:Int):LiveData<Reminder>
+    suspend fun loginUser(username: String)
+    suspend fun registerUser(username: String)
+    suspend fun triggerData()
+    suspend fun logOut()
+    suspend fun getUsername():String
+    suspend fun loginWithoutNetwork():Boolean
 
-    fun loginUser(username: String)
-    fun registerUser(username: String)
-
-    fun triggerData()
-    fun logOut()
+    fun isNetworkAvailable():Boolean
 }

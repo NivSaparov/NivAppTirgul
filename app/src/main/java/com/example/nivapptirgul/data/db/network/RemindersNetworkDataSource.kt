@@ -8,22 +8,14 @@ interface RemindersNetworkDataSource {
     val updatesToUser: LiveData<String>
     val isLogged: LiveData<Boolean>
 
-
-     fun fetchUserData(username: String)
-
-    fun loginUser(username: String)
-    fun registerUser(username: String)
-
-    fun logUserIn(username: String)
-
-    fun updateReminders(reminders: String, username: String)
-
-    fun convertDataToObject(data:String): UserResponse
-
-    fun upsertReminder(data:String, username: String)
-
-
-    fun disconnect()
+    suspend fun fetchUserData(username: String)
+    suspend fun loginUser(username: String)
+    suspend fun registerUser(username: String)
+    suspend fun updateReminders(reminders: String, username: String)
+    fun convertDataToObject(data: String): UserResponse
+    suspend fun upsertReminder(data: String, username: String)
+    suspend fun disconnect()
     fun deleteReminder(convertItemToJson: String?, userName: String)
+    fun isNetworkAvailable(): Boolean
 
 }

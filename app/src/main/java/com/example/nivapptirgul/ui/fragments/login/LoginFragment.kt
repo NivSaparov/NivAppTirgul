@@ -26,7 +26,9 @@ class LoginFragment : ScopedFragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         navController = findNavController()
-        DaggerAppComponent.factory().create(context!!).inject(this)
+        context?.let { context ->
+            DaggerAppComponent.factory().create(context).inject(this)
+        }
 
     }
 
@@ -41,7 +43,15 @@ class LoginFragment : ScopedFragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        bindUI()
+        launch {
+            if (viewModel.loginWithoutNetwork()) {
+                navController.navigate(R.id.action_loginFragment_to_listFragment)
+
+            } else {
+                bindUI()
+
+            }
+        }
     }
 
 
@@ -58,21 +68,20 @@ class LoginFragment : ScopedFragment() {
             showLoading(false)
         })
 
-        launch {
+        button_login.setOnClickListener {
+            showLoading(true)
+            val username = editText_username.text.trim().toString()
+            if (username.isNotEmpty()) viewModel.login(username)
+        }
 
-            button_login.setOnClickListener {
-                showLoading(true)
-                val username = editText_username.text.trim().toString()
-                viewModel.login(username)
-            }
+        button_register.setOnClickListener {
+            showLoading(true)
+            val username = editText_username.text.trim().toString()
+            if (username.isNotEmpty()) viewModel.register(username)
 
-            button_register.setOnClickListener {
-                showLoading(true)
-                val username = editText_username.text.trim().toString()
-                viewModel.register(username)
-            }
         }
     }
+
 
     /**
      * Show or hide group_loading_home -> progressbar and textView

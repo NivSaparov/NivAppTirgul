@@ -1,6 +1,5 @@
 package com.example.nivapptirgul.di
 
-import android.app.Application
 import android.content.Context
 import com.example.nivapptirgul.data.Repository.DataRepository
 import com.example.nivapptirgul.data.Repository.DataRepositoryImpl
@@ -13,6 +12,7 @@ import com.example.nivapptirgul.data.provider.DataPreferenceProviderImpl
 import com.example.nivapptirgul.ui.fragments.ListFragment.ListFragment
 import com.example.nivapptirgul.ui.fragments.addReminder.AddEditReminderFragment
 import com.example.nivapptirgul.ui.fragments.login.LoginFragment
+import com.example.nivapptirgul.ui.service.NetworkService
 import dagger.BindsInstance
 import dagger.Component
 import dagger.Module
@@ -25,6 +25,7 @@ interface AppComponent {
     fun inject(fragment: ListFragment)
     fun inject(fragment: LoginFragment)
     fun inject(fragment: AddEditReminderFragment)
+    fun inject(service: NetworkService)
 
     // Factory to create instances of the AppComponent
     @Component.Factory
@@ -32,7 +33,6 @@ interface AppComponent {
         // With @BindsInstance, the context passed in will be available in the graph
         fun create(@BindsInstance context: Context): AppComponent
     }
-
 }
 
 @Module
@@ -65,10 +65,9 @@ class DataRepositoryModule {
     }
 
     @Provides
-    fun provideDatabaseDao(database: RemindersDatabase):ReminderDao{
+    fun provideDatabaseDao(database: RemindersDatabase): ReminderDao {
         return database.getReminderDao()
     }
-
 
 
 }

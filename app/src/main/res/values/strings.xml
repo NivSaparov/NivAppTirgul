@@ -19,6 +19,11 @@
     <string name="user_name">Username</string>
     <string name="login">LOGIN</string>
     <string name="register">Register</string>
+    <string name="date">Date</string>
+    <string name="alarm_name">Alarm name:</string>
+    <string name="description">Description:</string>
+    <string name="notification_time">Notification Time:</string>
+    <string name="loading">loading</string>
 
 
 </resources>

@@ -9,16 +9,15 @@ import com.example.nivapptirgul.data.db.network.RemindersNetworkDataSource
 import com.example.nivapptirgul.data.db.network.response.UserResponse
 import com.example.nivapptirgul.data.provider.DataPreferenceProvider
 import com.google.gson.Gson
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class DataRepositoryImpl @Inject constructor(
-     private val dataPreferenceProvider: DataPreferenceProvider,
-     private val reminderDao: ReminderDao,
-     private val remindersNetworkDataSource: RemindersNetworkDataSource
+    private val dataPreferenceProvider: DataPreferenceProvider,
+    private val reminderDao: ReminderDao,
+    private val remindersNetworkDataSource: RemindersNetworkDataSource
 ) :
     DataRepository {
 
@@ -29,7 +28,7 @@ class DataRepositoryImpl @Inject constructor(
 
     val _userRemindersData = MutableLiveData<List<Reminder>>()
     override val userRemindersData: LiveData<List<Reminder>>
-        get() = _userRemindersData
+        get() = reminderDao.getReminders()
 
     override val isLogged: LiveData<Boolean>
         get() = remindersNetworkDataSource.isLogged
@@ -49,32 +48,32 @@ class DataRepositoryImpl @Inject constructor(
      *  Func will be call only when we get update from the server,
      *  that is means that we need to update our local DB
      */
+    @ExperimentalCoroutinesApi
     private fun persistUserData(userResponse: UserResponse) {
         // check user response lise of data
         Log.i("DataRepositoryD", "" + userResponse.remindersArray!!.size)
         // We will use GlobalScope because we not depend on the lifecycle of any widget
-        GlobalScope.async(Dispatchers.IO) {
+        GlobalScope.launch {
+            (Dispatchers.IO) {
 
-            // first update username in data preference
-            dataPreferenceProvider.setUserName(userResponse.username)
+                // first update username in data preference
+                dataPreferenceProvider.setUserName(userResponse.username)
+                // add all new data to local storage
+                reminderDao.updateData(userResponse.remindersArray as List<Reminder>)
 
-            // add all new data to local storage
-            reminderDao.updateData(userResponse.remindersArray as List<Reminder>)
-
-            _userRemindersData.postValue(reminderDao.getRemindersWithoutLiveData())
-
+            }
         }
     }
 
 
-    override fun triggerData() {
+    override suspend fun triggerData() {
         // ask server for data
         remindersNetworkDataSource.fetchUserData(dataPreferenceProvider.getUserName())
     }
 
-    override suspend fun getReminders(): LiveData<List<Reminder>> {
+    override suspend fun getReminders(): List<Reminder> {
         return withContext(Dispatchers.IO) {
-            return@withContext reminderDao.getReminders()
+            return@withContext reminderDao.getRemindersWithoutLiveData()
         }
     }
 
@@ -99,26 +98,43 @@ class DataRepositoryImpl @Inject constructor(
         )
     }
 
-    override fun updateUserName() {
+    override suspend fun updateUserName() {
         _userName.postValue(dataPreferenceProvider.getUserName())
 
     }
 
-    override fun loginUser(username: String) {
+    override suspend fun loginUser(username: String) {
         dataPreferenceProvider.setUserName(username)
         remindersNetworkDataSource.loginUser(username)
     }
 
-    override fun registerUser(username: String) {
+    override suspend fun registerUser(username: String) {
         remindersNetworkDataSource.registerUser(username)
     }
 
 
     private fun convertItemToJson(reminder: Reminder) = Gson().toJson(reminder)
 
-    override fun logOut() {
+    override suspend fun logOut() {
         dataPreferenceProvider.setUserName("")
         remindersNetworkDataSource.disconnect()
     }
 
+    override suspend fun getUsername(): String {
+        return dataPreferenceProvider.getUserName()
+    }
+
+    override suspend fun loginWithoutNetwork(): Boolean {
+        if (reminderDao.getRemindersWithoutLiveData().isEmpty() || getUsername() == "") {
+            return false
+        } else {
+            remindersNetworkDataSource.loginUser(getUsername())
+        }
+        return true
+
+    }
+
+    override fun isNetworkAvailable(): Boolean {
+        return remindersNetworkDataSource.isNetworkAvailable()
+    }
 }

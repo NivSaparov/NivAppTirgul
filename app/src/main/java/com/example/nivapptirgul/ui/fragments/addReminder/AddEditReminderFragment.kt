@@ -2,7 +2,6 @@ package com.example.nivapptirgul.ui.fragments.addReminder
 
 import android.app.DatePickerDialog
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,12 +15,12 @@ import com.example.nivapptirgul.data.db.entity.Reminder
 import com.example.nivapptirgul.di.DaggerAppComponent
 import com.example.nivapptirgul.ui.fragments.ScopedFragment
 import kotlinx.android.synthetic.main.add_reminder_fragment.*
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import java.util.*
 import javax.inject.Inject
 
 const val NEW_REMINDER = -1
+const val TAG = "AddEditFragment"
 
 class AddEditReminderFragment : ScopedFragment() {
 
@@ -39,8 +38,10 @@ class AddEditReminderFragment : ScopedFragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         navController = findNavController()
-        DaggerAppComponent.factory().create(context!!).inject(this)
+        context?.let { context ->
+            DaggerAppComponent.factory().create(context).inject(this)
 
+        }
     }
 
     override fun onCreateView(
@@ -52,17 +53,13 @@ class AddEditReminderFragment : ScopedFragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-
         initAddOrEdit()
         initToolbar()
-
-
         // Date picker
         val datePickerDialog = DatePickerDialog(
             context,
             object : DatePickerDialog.OnDateSetListener {
                 override fun onDateSet(p0: DatePicker?, year: Int, month: Int, day: Int) {
-
                     alarmTime.set(Calendar.YEAR, year)
                     alarmTime.set(Calendar.MONTH, month)
                     alarmTime.set(Calendar.DAY_OF_MONTH, day)
@@ -79,7 +76,6 @@ class AddEditReminderFragment : ScopedFragment() {
             datePickerDialog.show()
         }
 
-
         // Spinner picker
         alertTimeBefore = ArrayAdapter.createFromResource(
             context, R.array.before_array, R.layout.support_simple_spinner_dropdown_item
@@ -92,7 +88,6 @@ class AddEditReminderFragment : ScopedFragment() {
     }
 
     private fun initToolbar() {
-
         // When back button pressed
         toolbar_fragmentAddEdit.setNavigationOnClickListener {
             activity?.onBackPressed()
@@ -117,26 +112,20 @@ class AddEditReminderFragment : ScopedFragment() {
             myDate.minutes = timePicker.currentMinute
             myDate.seconds = 0
 
-            Log.i("AddFragment", myDate.toString())
 
-
-            if (myReminder != null) {
-
-                myReminder.title = title
-                myReminder.body = body
-                myReminder.date = myDate
-                myReminder.beforeTimeMill = spinner_beforeTime.selectedItem.toString().toInt()
-                if (reminderItemId != NEW_REMINDER) {
-                    myReminder.id = reminderItemId
-                }
+            myReminder.apply {
+                this.title = title
+                this.body = body
+                this.date = date
+                this.beforeTimeMill = spinner_beforeTime.selectedItem.toString().toInt()
             }
-            Log.i("AddFragment", "Insert reminder: ${myReminder!!.date.toString()}")
+            if (reminderItemId != NEW_REMINDER) {
+                myReminder.id = reminderItemId
+            }
+
             launch {
 
-                val insert = async {
-                    viewModel.insertOrUpdate(myReminder!!)
-                }
-                insert.await()
+                viewModel.insertOrUpdate(myReminder!!)
 
                 // when finish, return to listFragment
                 navController.navigate(R.id.action_addReminderFragment_to_listFragment)
@@ -146,38 +135,29 @@ class AddEditReminderFragment : ScopedFragment() {
         }
     }
 
-
     private fun initAddOrEdit() = launch {
         // Set view according to request action - Edit or Add
         var data = AddEditReminderFragmentArgs.fromBundle(arguments)
-
         if (data.itemId == NEW_REMINDER) {
             toolbar_fragmentAddEdit.title = "New Alert"
             timePicker.currentHour = myReminder.date.hours
             timePicker.currentMinute = myReminder.date.minutes
             textView_date.text = myReminder.getDateOnlyString()
-
-
         } else {
             toolbar_fragmentAddEdit.title = "Edit Alert"
             val reminder = viewModel.getReminder(data.itemId)
-            reminder.observe(this@AddEditReminderFragment, Observer {
-                if (it == null) return@Observer
-                myReminder = it
-                it.id = data.itemId
-                editText_title.setText(it.title)
-                editText_body.setText(it.body)
+            reminder.observe(this@AddEditReminderFragment, Observer { reminder->
+                if (reminder == null) return@Observer
+                myReminder = reminder
+                reminder.id = data.itemId
+                editText_title.setText(reminder.title)
+                editText_body.setText(reminder.body)
                 reminderItemId = data.itemId
                 timePicker.currentHour = myReminder.date.hours
                 timePicker.currentMinute = myReminder.date.minutes
                 textView_date.text = myReminder.getDateOnlyString()
                 spinner_beforeTime.setSelection(alertTimeBefore.getPosition(myReminder.beforeTimeMill.toString()))
             })
-
         }
-
     }
-
-
 }
-

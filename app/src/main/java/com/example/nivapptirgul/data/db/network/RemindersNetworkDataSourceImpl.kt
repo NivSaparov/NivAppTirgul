@@ -15,12 +15,11 @@ const val REGISTER = "REGISTER"
 const val DATA_FROM_CLIENT = "DATA_FROM_CLIENT"
 const val GET_DATA = "DATA_FROM_SERVER"
 const val ASK_FOR_DATA = "ASK_FOR_DATA"
-const val  DELETE_ITEM = "DELETE_ITEM"
+const val DELETE_ITEM = "DELETE_ITEM"
 
+const val TAG = "DataSource"
 
-
-
-class RemindersNetworkDataSourceImpl() : RemindersNetworkDataSource {
+class RemindersNetworkDataSourceImpl : RemindersNetworkDataSource {
     private val _downloadedUserData = MutableLiveData<UserResponse>()
     override val downloadedUserData: LiveData<UserResponse>
         get() = _downloadedUserData
@@ -47,27 +46,23 @@ class RemindersNetworkDataSourceImpl() : RemindersNetworkDataSource {
             mSocket = IO.socket("http://192.168.122.1:3002")
             mSocket.connect()
         } catch (e: URISyntaxException) {
-            Log.d("SocketActivity", e.message)
+            Log.i(TAG, e.message)
         }
 
     }
 
     private fun handleSocketCallbacks() {
         // Messages from server
-        mSocket.on(MESSAGES) {
-            val msg = it[0].toString()
-            _updatesToUser.postValue(msg)
-
-            Log.d("DataSource", "MSG: $msg")
+        mSocket.on(MESSAGES) { msgFromServer ->
+            _updatesToUser.postValue(msgFromServer.first().toString())
+            Log.i(TAG, "Message - : ${msgFromServer.first().toString()}")
         }
 
-        mSocket.on(LOGIN) {
-            when (it[0]) {
+        mSocket.on(LOGIN) { dataFromServer ->
+            when (dataFromServer.first()) {
                 true -> {
                     // convert user json to object and post it.
-                    val userData = convertDataToObject(it[1].toString())
-                    Log.d("DataSource", "Login: ${userData.remindersArray !!.size}")
-
+                    val userData = convertDataToObject(dataFromServer.elementAt(1).toString())
                     _downloadedUserData.postValue(userData)
                     _isLogged.postValue(true)
 
@@ -76,30 +71,19 @@ class RemindersNetworkDataSourceImpl() : RemindersNetworkDataSource {
         }
 
 
-        // When user register
-        mSocket.on(REGISTER) {
-            when (it[0]) {
-                false -> _isLogged.postValue(false)
-            }
-        }
-
-
         // When server update new data
-        mSocket.on(GET_DATA) {
-
+        mSocket.on(GET_DATA) { dataFromServer ->
             // convert user json to object and post it.
-            val userData = convertDataToObject(it[0].toString())
-            Log.d("DataSource", "new data from server: ${userData.remindersArray!!.size} items")
-
+            val userData = convertDataToObject(dataFromServer.first().toString())
+            Log.i(TAG, "Update from server")
             _downloadedUserData.postValue(userData)
             _isLogged.postValue(true)
-
-
         }
 
         // HANDLE ERRORS
         mSocket.on(Socket.EVENT_CONNECT_ERROR) {
             _updatesToUser.postValue("Please check your internet connection")
+            mSocket.close()
         }
     }
 
@@ -107,40 +91,36 @@ class RemindersNetworkDataSourceImpl() : RemindersNetworkDataSource {
         mSocket.emit(DELETE_ITEM, convertItemToJson, userName)
     }
 
-    override  fun fetchUserData(username: String) {
+    override suspend fun fetchUserData(username: String) {
         mSocket.emit(ASK_FOR_DATA, username)
     }
 
-    override fun loginUser(username: String) {
+    override suspend fun loginUser(username: String) {
         mSocket.emit(LOGIN, username)
     }
 
-    override fun registerUser(username: String) {
+    override suspend fun registerUser(username: String) {
         mSocket.emit(REGISTER, username)
     }
 
-    override fun logUserIn(username: String) {
-        mSocket.emit(LOGIN, username)
-    }
-
-
-    override fun updateReminders(reminders: String, username: String) {
+    override suspend fun updateReminders(reminders: String, username: String) {
         mSocket.emit(DATA_FROM_CLIENT, reminders, username)
     }
 
-    override fun upsertReminder(data: String, username: String) {
+    override suspend fun upsertReminder(data: String, username: String) {
         mSocket.emit(DATA_FROM_CLIENT, data, username)
+    }
+
+    override suspend fun disconnect() {
+        mSocket.disconnect()
     }
 
     override fun convertDataToObject(data: String): UserResponse {
         return Gson().fromJson(data, UserResponse::class.java)
     }
 
-
-    override fun disconnect() {
-        mSocket.disconnect()
+    override fun isNetworkAvailable(): Boolean {
+        return mSocket.connected()
     }
-
-
 }
 

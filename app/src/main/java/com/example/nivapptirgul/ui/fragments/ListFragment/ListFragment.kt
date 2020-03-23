@@ -25,9 +25,8 @@ import com.example.nivapptirgul.ui.ListViewModel
 import com.example.nivapptirgul.ui.fragments.ScopedFragment
 import com.example.nivapptirgul.ui.fragments.addReminder.NEW_REMINDER
 import com.example.nivapptirgul.ui.fragments.recycler.SwipeAdapter
-import com.example.nivapptirgul.ui.notification.AlertReceiver
+import com.example.nivapptirgul.ui.service.NetworkService
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.list_fragment.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -58,31 +57,42 @@ class ListFragment : ScopedFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        toolbar_fragmentList.title = "My Cool App"
         toolbar_fragmentList.inflateMenu(R.menu.menu_main)
         toolbar_fragmentList.setOnMenuItemClickListener {
-
-
             when (it.itemId) {
                 R.id.action_logout -> {
                     logoutUser()
                     navController.navigate(R.id.loginFragment)
-                    true
                 }
-                else -> true
+            }
+            true
+        }
+
+        if (isNetworkAvailable()) {
+            buttonAdd.setOnClickListener {
+                var action = ListFragmentDirections.action_listFragment_to_addReminderFragment()
+                action.setItemId(NEW_REMINDER)
+                navController.navigate(action)
             }
         }
-
-        buttonAdd.setOnClickListener {
-            var action = ListFragmentDirections.action_listFragment_to_addReminderFragment()
-            action.setItemId(NEW_REMINDER)
-            navController.navigate(action)
-
-        }
-
         initRecyclerView()
         loadData()
+    }
 
+    /**
+     * ask data from repo, update adapter and schedule notifications.
+     */
+    private fun loadData() {
+
+        launch {
+            mAdapter.setData(ArrayList(viewModel.getData()))
+            toolbar_fragmentList.title = "Welcome ${viewModel.getUsername()}"
+        }
+
+        viewModel.reminders.observe(viewLifecycleOwner, Observer {
+            mAdapter.setData(ArrayList(it))
+            scheduleNotification()
+        })
 
     }
 
@@ -91,14 +101,17 @@ class ListFragment : ScopedFragment() {
      * override / add - all notification with new items.
      */
     private fun scheduleNotification() {
-        var alarmManager = context!!.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        context?.let {context->
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
         val items = mAdapter.items
         for (item in items) {
-            val alertIntent = Intent(context, AlertReceiver::class.java)
-            alertIntent.putExtra("id", item.id)
-            alertIntent.putExtra("title", item.title)
-            alertIntent.putExtra("body", item.body)
+            val alertIntent = Intent(context, NetworkService.AlertReceiver::class.java)
+            alertIntent.apply {
+                putExtra("id", item.id)
+                putExtra("title", item.title)
+                putExtra("body", item.body)
+            }
 
             val pendingIntent = PendingIntent.getBroadcast(
                 context,
@@ -111,10 +124,8 @@ class ListFragment : ScopedFragment() {
                 item.date.time - item.beforeTimeMill,
                 pendingIntent
             )
-
         }
-
-    }
+    }}
 
     /**
      * Cancel all notification in case user logout.
@@ -124,7 +135,7 @@ class ListFragment : ScopedFragment() {
 
         val items = mAdapter.items
         for (item in items) {
-            val alertIntent = Intent(context, AlertReceiver::class.java)
+            val alertIntent = Intent(context, NetworkService.AlertReceiver::class.java)
             alertIntent.putExtra("id", item.id)
             alertIntent.putExtra("title", item.title)
             alertIntent.putExtra("body", item.body)
@@ -136,22 +147,6 @@ class ListFragment : ScopedFragment() {
                 PendingIntent.FLAG_UPDATE_CURRENT
             )
             alarmManager.cancel(pendingIntent)
-        }
-    }
-
-
-    /**
-     * ask data from repo, update adapter and schedule notifications.
-     */
-    private fun loadData() {
-        viewModel.reminders.observe(viewLifecycleOwner, Observer {
-            mAdapter.setData(ArrayList(it))
-            scheduleNotification()
-        })
-
-        launch {
-            viewModel.getData()
-
         }
     }
 
@@ -178,7 +173,6 @@ class ListFragment : ScopedFragment() {
             ): Boolean {
                 return false
             }
-
 
             /**
              * This method going to called when item swiped away
@@ -207,13 +201,10 @@ class ListFragment : ScopedFragment() {
                 }
                 snackbar.setActionTextColor(Color.YELLOW)
                 snackbar.show()
-
-
             }
 
             private fun deleteReminder(reminder: Reminder) = launch {
                 viewModel.deleteReminder(reminder)
-
             }
 
             private fun addReminder(reminder: Reminder) = launch {
@@ -251,25 +242,35 @@ class ListFragment : ScopedFragment() {
                 background.draw(c)
             }
         }
-
-        val itemTouchHelper = ItemTouchHelper(itemTouchHelperCallback)
-        itemTouchHelper.attachToRecyclerView(recyclerView_reminders)
+        if (isNetworkAvailable()) {
+            val itemTouchHelper = ItemTouchHelper(itemTouchHelperCallback)
+            itemTouchHelper.attachToRecyclerView(recyclerView_reminders)
+        }
 
         // add OnItemClickListener
         mAdapter.setOnItemClickListener(object : SwipeAdapter.OnItemClickListener {
             override fun onItemClick(reminder: Reminder, position: Int) {
-                var action = ListFragmentDirections.action_listFragment_to_addReminderFragment()
-                action.setTitle(reminder.title)
-                action.setBody(reminder.body)
-                action.setItemId(reminder.id!!)
-                navController.navigate(action)
+                if (isNetworkAvailable()) {
+                    var action = ListFragmentDirections.action_listFragment_to_addReminderFragment()
+                    action.apply {
+                        setTitle(reminder.title)
+                        setBody(reminder.body)
+                        setItemId(reminder.id)
+                    }
+                    navController.navigate(action)
+                }
             }
         })
     }
 
-    private fun logoutUser() {
+    private fun logoutUser() = launch {
         cancelNotifications()
         viewModel.logOut()
+    }
+
+    fun isNetworkAvailable(): Boolean {
+        return viewModel.isNetworkAvailable()
+
     }
 
 

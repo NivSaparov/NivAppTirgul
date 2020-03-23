@@ -3,7 +3,7 @@
     package="com.example.nivapptirgul">
 
     <uses-permission android:name="android.permission.INTERNET" />
-
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
 
     <application
         android:allowBackup="true"
@@ -12,6 +12,16 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+
+        <receiver
+            android:name=".ui.service.NetworkService$AlertReceiver"
+            android:enabled="true"
+            android:exported="true"/>
+
+        <service
+            android:name=".ui.service.NetworkService"
+            android:exported="false" />
+
         <activity android:name=".ui.activity.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -20,9 +30,8 @@
             </intent-filter>
         </activity>
 
-        <receiver
-            android:name=".ui.notification.AlertReceiver"
-            android:enabled="true" />
+
+
     </application>
 
 </manifest>

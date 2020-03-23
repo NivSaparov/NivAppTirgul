@@ -18,7 +18,8 @@ import javax.inject.Inject
     version = 5
 )
 @TypeConverters(Converters::class)
-abstract class RemindersDatabase: RoomDatabase() {
+abstract class
+RemindersDatabase: RoomDatabase() {
 
     abstract fun getReminderDao(): ReminderDao
     /**

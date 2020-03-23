@@ -31,7 +31,7 @@
             android:maxWidth="256dp"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toBottomOf="@id/item_title"
-            tools:text="Some thing about me getting my home work done wohowowo, I need to eat I need to bla bla bla" />
+            tools:text="Some thing about me getting my home work done" />
 
     <TextView
         android:id="@+id/item_time_time"
@@ -49,6 +49,5 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/item_time_time"
         tools:text="16/06/19\nMonday" />
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>
